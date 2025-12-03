@@ -1,6 +1,7 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "RelationshipGPS",
+  "name": "RelationshipGPS - Navigate Love, Work, and Life Connections",
+  "description": "AI-powered relationship management platform",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +21,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
+  "theme_color": "#2dd4bf",
   "background_color": "#ffffff"
 }
