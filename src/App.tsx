@@ -35,7 +35,7 @@ const App: React.FC = () => {
       case 'coach':
         return <CoachView />;
       case 'profile':
-        return <ProfileView />;
+        return <ProfileView selectedMemberId={selectedMemberId} />;
       default:
         return <HomeView onNavigate={handleNavigate} onSelectMember={handleSelectMember} />;
     }

@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { familyMembers, FamilyMember } from '../../data/mockData';
 
-const ProfileView: React.FC = () => {
+interface ProfileViewProps {
+  selectedMemberId?: string | null;
+}
+
+const ProfileView: React.FC<ProfileViewProps> = ({ selectedMemberId }) => {
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
 
   const user = {
