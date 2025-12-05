@@ -1,0 +1,241 @@
+/* Senior-Friendly UX Improvements */
+
+/* Larger touch targets for all buttons */
+button, .btn {
+  min-height: 48px;
+  min-width: 48px;
+  padding: 12px 24px;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+}
+
+/* Extra large buttons for primary actions */
+.btn-large {
+  min-height: 56px !important;
+  padding: 16px 32px !important;
+  font-size: var(--font-size-lg) !important;
+}
+
+/* Improved form inputs */
+input[type="text"],
+input[type="email"],
+input[type="date"],
+input[type="datetime-local"],
+select,
+textarea {
+  min-height: 48px;
+  padding: 12px 16px;
+  font-size: var(--font-size-base);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+/* Focus states for better visibility */
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Loading states */
+.loading-spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--font-size-lg);
+  color: var(--text-secondary);
+}
+
+/* Success/Error messages */
+.success-message,
+.error-message {
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
+  margin: 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.success-message {
+  background: #d4edda;
+  border: 2px solid #28a745;
+  color: #155724;
+}
+
+.error-message {
+  background: #f8d7da;
+  border: 2px solid #dc3545;
+  color: #721c24;
+}
+
+/* AI-generated content display */
+.ai-suggestions-text,
+.ai-date-plan-text {
+  background: var(--surface);
+  padding: 24px;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  margin: 20px 0;
+}
+
+.suggestions-content p,
+.date-plan-content p {
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.suggestions-content p:empty,
+.date-plan-content p:empty {
+  display: none;
+}
+
+/* Stronger emphasis for headings in AI content */
+.suggestions-content strong,
+.date-plan-content strong {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Better spacing for lists in AI content */
+.suggestions-content p:has(+ p),
+.date-plan-content p:has(+ p) {
+  margin-bottom: 16px;
+}
+
+/* Clickable cards - clearer affordance */
+.family-member-card {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.family-member-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary);
+}
+
+.family-member-card:active {
+  transform: translateY(0);
+}
+
+/* Add "tap here" hint for mobile */
+@media (max-width: 768px) {
+  .family-member-card::after {
+    content: 'Tap to view profile';
+    display: block;
+    text-align: center;
+    font-size: var(--font-size-sm);
+    color: var(--text-tertiary);
+    margin-top: 8px;
+  }
+}
+
+/* Confirmation dialogs */
+.confirmation-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--surface);
+  padding: 32px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  max-width: 400px;
+  width: 90%;
+}
+
+.confirmation-dialog h3 {
+  font-size: var(--font-size-xl);
+  margin-bottom: 16px;
+}
+
+.confirmation-dialog p {
+  font-size: var(--font-size-base);
+  margin-bottom: 24px;
+  line-height: var(--line-height-base);
+}
+
+.confirmation-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* Overlay for dialogs */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+/* Better contrast for important text */
+.important-text {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: var(--font-size-lg);
+}
+
+/* Disabled state clarity */
+button:disabled,
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--border);
+  color: var(--text-tertiary);
+}
+
+/* Mobile-specific improvements */
+@media (max-width: 768px) {
+  /* Even larger touch targets on mobile */
+  button, .btn {
+    min-height: 52px;
+    padding: 14px 24px;
+  }
+  
+  .btn-large {
+    min-height: 60px !important;
+    padding: 18px 32px !important;
+  }
+  
+  /* Larger form inputs on mobile */
+  input[type="text"],
+  input[type="email"],
+  input[type="date"],
+  input[type="datetime-local"],
+  select,
+  textarea {
+    min-height: 52px;
+    font-size: 16px; /* Prevents iOS zoom */
+  }
+  
+  /* Better spacing on mobile */
+  .form-group {
+    margin-bottom: 24px;
+  }
+}

@@ -29,13 +29,13 @@ const App: React.FC = () => {
       case 'home':
         return <HomeView onNavigate={handleNavigate} onSelectMember={handleSelectMember} />;
       case 'gifts':
-        return <GiftsView />;
+        return <GiftsView onBack={() => handleNavigate('home')} />;
       case 'dates':
-        return <DatesView />;
+        return <DatesView onBack={() => handleNavigate('home')} />;
       case 'coach':
-        return <CoachView />;
+        return <CoachView onBack={() => handleNavigate('home')} />;
       case 'profile':
-        return <ProfileView selectedMemberId={selectedMemberId} />;
+        return <ProfileView selectedMemberId={selectedMemberId} onBack={() => handleNavigate('home')} />;
       default:
         return <HomeView onNavigate={handleNavigate} onSelectMember={handleSelectMember} />;
     }

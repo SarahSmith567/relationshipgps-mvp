@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { familyMembers, FamilyMember } from '../../data/mockData';
+import BackButton from '../shared/BackButton';
 
 interface ProfileViewProps {
   selectedMemberId?: string | null;
+  onBack?: () => void;
 }
 
-const ProfileView: React.FC<ProfileViewProps> = ({ selectedMemberId }) => {
+const ProfileView: React.FC<ProfileViewProps> = ({ selectedMemberId, onBack }) => {
   const [selectedMember, setSelectedMember] = useState<FamilyMember | null>(null);
 
   const user = {
@@ -28,6 +30,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ selectedMemberId }) => {
   if (selectedMember) {
     return (
       <div className="profile-view">
+        <BackButton onClick={handleBack} label="Back to Profiles" />
         <div className="profile-detail">
           <div className="profile-detail-header">
             <button className="btn-back" onClick={handleBack}>
@@ -158,6 +161,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ selectedMemberId }) => {
 
   return (
     <div className="profile-view">
+      {onBack && <BackButton onClick={onBack} />}
       <section className="user-profile-section">
         <div className="user-profile-card">
           <div className="user-avatar">{user.avatar}</div>

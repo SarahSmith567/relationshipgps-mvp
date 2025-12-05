@@ -1,13 +1,22 @@
 import React, { useState } from 'react';
 import { familyMembers, sampleDatePlan } from '../../data/mockData';
 import VoiceInputButton from '../shared/VoiceInputButton';
+import BackButton from '../shared/BackButton';
+import { generateDatePlan } from '../../services/openai';
 
-const DatesView: React.FC = () => {
+interface DatesViewProps {
+  onBack?: () => void;
+}
+
+const DatesView: React.FC<DatesViewProps> = ({ onBack }) => {
   const [selectedMember, setSelectedMember] = useState('');
-  const [dateTime, setDateTime] = useState('');
+  const [selectedDay, setSelectedDay] = useState('');
+  const [selectedTime, setSelectedTime] = useState('evening');
   const [budget, setBudget] = useState('50_100');
   const [showPlan, setShowPlan] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [aiDatePlan, setAiDatePlan] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
   const budgetOptions = [
     { value: 'under_25', label: 'Under $25' },
@@ -17,18 +26,54 @@ const DatesView: React.FC = () => {
     { value: '250_plus', label: '$250+' }
   ];
 
-  const handlePlanDate = () => {
-    if (!selectedMember || !dateTime) {
-      alert('Please select who the date is with and when');
-      return;
-    }
+  const dayOptions = [
+    { value: 'this_weekend', label: 'This Weekend' },
+    { value: 'next_friday', label: 'Next Friday' },
+    { value: 'next_saturday', label: 'Next Saturday' },
+    { value: 'next_week', label: 'Sometime Next Week' },
+    { value: 'two_weeks', label: 'In Two Weeks' }
+  ];
+
+  const timeOptions = [
+    { value: 'morning', label: 'Morning (10:00 AM)' },
+    { value: 'lunch', label: 'Lunch Time (12:00 PM)' },
+    { value: 'afternoon', label: 'Afternoon (2:00 PM)' },
+    { value: 'evening', label: 'Evening (7:00 PM)' },
+    { value: 'night', label: 'Night (9:00 PM)' }
+  ];
+
+  const handlePlanDate = async () => {
+    console.log('handlePlanDate called', { selectedMember, selectedDay, selectedTime, budget });
+    
+    // Use defaults if not selected
+    const memberId = selectedMember || 'laurie';
+    const day = selectedDay || 'this_weekend';
     
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    setError('');
+    
+    try {
+      const member = familyMembers.find(m => m.id === memberId);
+      const budgetLabel = budgetOptions.find(b => b.value === budget)?.label || '$50-$100';
+      
+      const dayLabel = dayOptions.find(d => d.value === day)?.label || 'soon';
+      const timeLabel = timeOptions.find(t => t.value === selectedTime)?.label || 'evening';
+      const dateTimeStr = `${dayLabel} at ${timeLabel}`;
+      
+      const datePlan = await generateDatePlan({
+        partnerName: member?.name || 'your partner',
+        dateTime: dateTimeStr,
+        budget: budgetLabel,
+        preferences: member ? `They enjoy quality time and meaningful experiences` : ''
+      });
+      
+      setAiDatePlan(datePlan);
       setShowPlan(true);
-    }, 1500);
+    } catch (err) {
+      setError('Sorry, I had trouble creating a date plan. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleVoiceInput = (text: string) => {
@@ -36,8 +81,14 @@ const DatesView: React.FC = () => {
     // TODO: Parse voice input and fill form
   };
 
+  const handleBack = () => {
+    setShowPlan(false);
+    if (onBack) onBack();
+  };
+
   return (
     <div className="dates-view">
+      <BackButton onClick={handleBack} />
       {!showPlan ? (
         <div className="date-request-form">
           <h2>Plan a Date</h2>
@@ -62,13 +113,30 @@ const DatesView: React.FC = () => {
           </div>
 
           <div className="form-group">
-            <label>When?</label>
-            <input 
-              type="datetime-local"
-              value={dateTime}
-              onChange={(e) => setDateTime(e.target.value)}
-              className="form-input"
-            />
+            <label>What day?</label>
+            <select 
+              value={selectedDay}
+              onChange={(e) => setSelectedDay(e.target.value)}
+              className="form-select"
+            >
+              <option value="">Select a day</option>
+              {dayOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label>What time?</label>
+            <select 
+              value={selectedTime}
+              onChange={(e) => setSelectedTime(e.target.value)}
+              className="form-select"
+            >
+              {timeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
           </div>
 
           <div className="form-group">
@@ -108,19 +176,35 @@ const DatesView: React.FC = () => {
             >
               ← Back
             </button>
-            <h2>Date Plan for {familyMembers.find(m => m.id === selectedMember)?.name}</h2>
+            <h2>Date Plan for {familyMembers.find(m => m.id === selectedMember)?.name || 'Laurie'}</h2>
             <p className="plan-meta">
-              {new Date(dateTime).toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
+              {dayOptions.find(d => d.value === selectedDay)?.label || 'This Weekend'} at {timeOptions.find(t => t.value === selectedTime)?.label || 'Evening'}
             </p>
           </div>
 
-          <div className="date-plan-sections">
-            {/* Activity Section */}
-            <div className="plan-section activity-section">
+          {error && (
+            <div className="error-message">
+              <p>{error}</p>
+              <button className="btn btn-secondary" onClick={() => setShowPlan(false)}>Try Again</button>
+            </div>
+          )}
+
+          <>
+          {aiDatePlan && (
+            <div className="ai-date-plan-text">
+              <div className="date-plan-content">
+                {aiDatePlan.split('\n').map((line, index) => (
+                  <p key={index}>{line}</p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!aiDatePlan && !error && (
+            <>
+            <div className="date-plan-sections">
+              {/* Activity Section */}
+              <div className="plan-section activity-section">
               <div className="section-icon">🎵</div>
               <div className="section-content">
                 <h3>Activity</h3>
@@ -184,6 +268,9 @@ const DatesView: React.FC = () => {
               Share Plan
             </button>
           </div>
+          </>
+          )}
+          </>
         </div>
       )}
     </div>

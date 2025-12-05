@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import { familyMembers, sampleGiftSuggestions } from '../../data/mockData';
 import VoiceInputButton from '../shared/VoiceInputButton';
+import BackButton from '../shared/BackButton';
+import { generateGiftSuggestions } from '../../services/openai';
 
-const GiftsView: React.FC = () => {
+interface GiftsViewProps {
+  onBack?: () => void;
+}
+
+const GiftsView: React.FC<GiftsViewProps> = ({ onBack }) => {
   const [selectedMember, setSelectedMember] = useState('');
   const [occasion, setOccasion] = useState('');
   const [budget, setBudget] = useState('50_100');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState<string>('');
+  const [error, setError] = useState<string>('');
 
   const occasions = ['Birthday', 'Anniversary', 'Just Because', 'Holiday', 'Special Event'];
   const budgetOptions = [
@@ -18,18 +26,32 @@ const GiftsView: React.FC = () => {
     { value: '250_plus', label: '$250+' }
   ];
 
-  const handleGetSuggestions = () => {
-    if (!selectedMember || !occasion) {
-      alert('Please select a family member and occasion');
-      return;
-    }
+  const handleGetSuggestions = async () => {
+    // Use defaults if not selected
+    const memberId = selectedMember || 'laurie';
+    const occ = occasion || 'birthday';
     
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
+    setError('');
+    
+    try {
+      const member = familyMembers.find(m => m.id === memberId);
+      const budgetLabel = budgetOptions.find(b => b.value === budget)?.label || '$50-$100';
+      
+      const suggestions = await generateGiftSuggestions({
+        recipientName: member?.name || 'family member',
+        occasion: occ,
+        budget: budgetLabel,
+        recipientProfile: member ? `Age: ${member.age}, Relationship: ${member.relationship}` : ''
+      });
+      
+      setAiSuggestions(suggestions);
       setShowSuggestions(true);
-    }, 1500);
+    } catch (err) {
+      setError('Sorry, I had trouble generating gift ideas. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleVoiceInput = (text: string) => {
@@ -37,8 +59,14 @@ const GiftsView: React.FC = () => {
     // TODO: Parse voice input and fill form
   };
 
+  const handleBack = () => {
+    setShowSuggestions(false);
+    if (onBack) onBack();
+  };
+
   return (
     <div className="gifts-view">
+      <BackButton onClick={handleBack} />
       {!showSuggestions ? (
         <div className="gift-request-form">
           <h2>Gift Suggestions</h2>
@@ -114,11 +142,29 @@ const GiftsView: React.FC = () => {
               ← Back
             </button>
             <h2>Gift Ideas for {familyMembers.find(m => m.id === selectedMember)?.name}</h2>
-            <p className="suggestions-meta">{occasion} • Budget: ${budget.replace('_', '-')}</p>
+            <p className="suggestions-meta">{occasion} • Budget: {budgetOptions.find(b => b.value === budget)?.label}</p>
           </div>
 
-          <div className="suggestions-grid">
-            {sampleGiftSuggestions.map((gift) => (
+          {error && (
+            <div className="error-message">
+              <p>{error}</p>
+              <button className="btn btn-secondary" onClick={() => setShowSuggestions(false)}>Try Again</button>
+            </div>
+          )}
+
+          {aiSuggestions && (
+            <div className="ai-suggestions-text">
+              <div className="suggestions-content">
+                {aiSuggestions.split('\n').map((line, index) => (
+                  <p key={index}>{line}</p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!aiSuggestions && !error && (
+            <div className="suggestions-grid">
+              {sampleGiftSuggestions.map((gift) => (
               <div key={gift.id} className="gift-card">
                 <div className="gift-image-placeholder">
                   <span className="gift-category-icon">
@@ -142,6 +188,7 @@ const GiftsView: React.FC = () => {
               </div>
             ))}
           </div>
+          )}
         </div>
       )}
     </div>

@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { sampleChatMessages, ChatMessage } from '../../data/mockData';
 import VoiceInputButton from '../shared/VoiceInputButton';
+import BackButton from '../shared/BackButton';
+import { sendChatMessage } from '../../services/openai';
 
-const CoachView: React.FC = () => {
+interface CoachViewProps {
+  onBack?: () => void;
+}
+
+const CoachView: React.FC<CoachViewProps> = ({ onBack }) => {
   const [messages, setMessages] = useState<ChatMessage[]>(sampleChatMessages);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -15,7 +21,7 @@ const CoachView: React.FC = () => {
     'Help me understand attachment styles'
   ];
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
     const userMessage: ChatMessage = {
@@ -26,21 +32,40 @@ const CoachView: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Convert messages to OpenAI format
+      const conversationHistory = messages.map(msg => ({
+        role: msg.sender === 'user' ? 'user' as const : 'assistant' as const,
+        content: msg.text
+      }));
+
+      // Get real AI response from OpenAI
+      const aiResponseText = await sendChatMessage(currentInput, conversationHistory);
+      
       const aiResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
         sender: 'ai',
-        text: getAIResponse(inputValue),
+        text: aiResponseText,
         timestamp: new Date(),
-        concepts: getRelatedConcepts(inputValue)
+        concepts: getRelatedConcepts(currentInput)
       };
       setMessages(prev => [...prev, aiResponse]);
+    } catch (error) {
+      // Fallback to mock response if API fails
+      const aiResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: 'ai',
+        text: "I'm having trouble connecting right now. Please try again in a moment.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const getAIResponse = (input: string): string => {
@@ -99,6 +124,7 @@ const CoachView: React.FC = () => {
 
   return (
     <div className="coach-view">
+      <BackButton onClick={() => onBack?.()} />
       <div className="chat-container">
         <div className="chat-messages">
           {messages.map((message) => (
